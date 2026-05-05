@@ -1,0 +1,41 @@
+Proje Amacı
+Klasik bir yemek sipariş sisteminin (Müşteri, Restoran, Sipariş, Kurye) ötesinde, toplumsal yardımlaşmayı dijitalleştiren bir "Askıda Yemek" havuz mantığını kurgulamak ve yönetmektir.
+
+İş Kuralları
+Sistem şu temel kurallar üzerine inşa edilmiştir:
+
+* Üyelik ve Roller: Kullanıcılar; Müşteri, Restoran Yetkilisi ve Kurye olarak rollerine ayrılır.  
+
+
+* Askıda Yemek (Bakiye Modeli): Hayırseverler, kimliklerini gizleyerek veya açıkça havuz sistemine nakdi bağış yapabilirler.  
+
+* Bağışlar merkezi bir AskidaHavuz tablosunda toplanır.
+
+* Doğrulanmış ihtiyaç sahibi kullanıcılar, sipariş ödemelerini bu havuzdaki bakiyeyi kullanarak gerçekleştirebilirler.  
+
+* Veri Güvenliği ve Silme: Hiçbir kritik veri fiziksel olarak silinmez; IsActive = 0 mantığıyla "Soft Delete" uygulanır.  
+
+
+* Denetim: Sipariş tutarları 0'dan küçük olamaz ve restoran puanları 1-5 arasında olmalıdır.
+
+Veritabanı Şeması
+Şu aşamada tasarlanan ana tablolar:
+
+* Kullanicilar: Sistemdeki tüm aktörleri ve bakiyeleri tutar.
+
+* Restoranlar: İşletme bilgilerini ve puanlarını içerir.
+
+* Menuler / Urunler: Restoranlara ait yemek listeleri.
+
+* AskidaHavuz: Toplanan bağış miktarının anlık durumunu yönetir.
+
+* Siparisler: Hem normal hem de "Askıda" ödeme tipindeki sipariş hareketleri.
+
+Yapay Zeka Kullanım Beyanı
+Bu proje geliştirilirken Gemini asistan olarak kullanılmıştır.  
+
+
+* Kullanım Alanları: Proje mantığının tartışılması, veritabanı şemasının taslak oluşturma süreci ve SQL hatalarının ayıklanması.  
+
+
+* Sorumluluk: Tasarlanan tüm tablolar ve yazılan tüm SQL kodları tarafımca analiz edilmiş ve çalışma mantığı tamamen kavranmıştır.
