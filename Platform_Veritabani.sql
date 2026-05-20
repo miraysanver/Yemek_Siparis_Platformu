@@ -26,3 +26,19 @@ CREATE TABLE Restoranlar (
     CONSTRAINT PK_Restoranlar PRIMARY KEY (RestoranID), 
     CONSTRAINT CHK_RestoranPuani CHECK (RestoranPuani BETWEEN 1.0 AND 5.0) 
 );
+
+CREATE TABLE Urunler (
+    UrunID INT IDENTITY(1,1), 
+    RestoranID INT NOT NULL,  
+    UrunAdi VARCHAR(100) NOT NULL,
+    Acýklama TEXT,
+    Fiyat DECIMAL(10, 2) NOT NULL,
+    IsActive INT DEFAULT 1,   
+
+    CONSTRAINT PK_Urunler PRIMARY KEY (UrunID),
+    
+    CONSTRAINT FK_Urunler_Restoranlar FOREIGN KEY (RestoranID) 
+        REFERENCES Restoranlar(RestoranID),
+        
+    CONSTRAINT CHK_UrunFiyat CHECK (Fiyat > 0)
+);
