@@ -42,3 +42,36 @@ CREATE TABLE Urunler (
         
     CONSTRAINT CHK_UrunFiyat CHECK (Fiyat > 0)
 );
+
+IF OBJECT_ID('dbo.Bagislar', 'U') IS NOT NULL DROP TABLE dbo.Bagislar;
+IF OBJECT_ID('dbo.AskidaHavuz', 'U') IS NOT NULL DROP TABLE dbo.AskidaHavuz;
+GO
+
+CREATE TABLE AskidaHavuz (
+    HavuzID INT IDENTITY(1,1),
+    ToplamBakiye DECIMAL(10, 2) DEFAULT 0.00,
+    SonGuncellemeTarihi DATETIME DEFAULT GETDATE(),
+
+    CONSTRAINT PK_AskidaHavuz PRIMARY KEY (HavuzID),
+    CONSTRAINT CHK_HavuzToplamBakiye CHECK (ToplamBakiye >= 0)
+);
+GO
+
+CREATE TABLE Bagislar (
+    BagisID INT IDENTITY(1,1),
+    BagisciID INT NULL, 
+    BagisMiktar DECIMAL(10, 2) NOT NULL,
+    IsAnonymous BIT DEFAULT 0,  
+    BagisTarihi DATETIME DEFAULT GETDATE(),
+
+    CONSTRAINT PK_Bagislar PRIMARY KEY (BagisID),
+    
+    CONSTRAINT FK_Bagislar_Kullanicilar FOREIGN KEY (BagisciID) 
+        REFERENCES Kullanicilar(KullaniciID),
+        
+    CONSTRAINT CHK_BagisMiktar CHECK (BagisMiktar > 0)
+);
+GO
+
+INSERT INTO AskidaHavuz (ToplamBakiye) VALUES (0.00);
+GO
