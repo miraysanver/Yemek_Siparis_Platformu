@@ -281,7 +281,7 @@ BEGIN
     
     IF @Sayac % 5 = 0
     BEGIN
-        -- Ýhtiyaç sahipleri havuzdan sadece ucuz ürünleri (Lahmacun, Çorba, Dürüm vs.) söylesin
+        -- Ýhtiyaç sahipleri havuzdan sadece ucuz ürünleri söylesin
         SET @SecilenRestoran = CASE (@Sayac % 2) WHEN 0 THEN 2 ELSE 3 END;
         SET @SecilenUrun = ((@SecilenRestoran - 1) * 10) + (@Sayac % 4) + 1; 
         SET @SiparisAdedi = 1; 
