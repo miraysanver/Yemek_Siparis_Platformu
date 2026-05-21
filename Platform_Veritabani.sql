@@ -311,3 +311,64 @@ BEGIN
     SET @Sayac = @Sayac + 1;
 END;
 GO
+
+GO
+
+-- ASKIDA HAVUZ DURUMU VÝEW'I
+-- Havuzda anlýk kaç para olduðunu ve toplamda kaç liralýk askýda yemek yendiðini özetler.
+CREATE VIEW vw_AskidaHavuzDurumu AS
+SELECT 
+    H.ToplamBakiye AS [Havuzdaki Güncel Para (TL)],
+    H.SonGuncellemeTarihi AS [Son Havuz Hareketi],
+    (SELECT ISNULL(SUM(BagisMiktar), 0) FROM Bagislar) AS [Toplam Yapýlan Baðýþ],
+    (SELECT ISNULL(SUM(ToplamTutar), 0) FROM Siparisler WHERE OdemeYontemi = 'AskidaYemek') AS [Toplam Askýdan Yenilen Yemek Tutarý]
+FROM AskidaHavuz H;
+GO
+
+-- RESTORAN PERFORMANS VÝEW'I
+-- Hangi restoranýn kaç sipariþ aldýðýný, toplam cirosunu ve güncel puanýný raporlar.
+CREATE VIEW vw_RestoranPerformansRaporu AS
+SELECT 
+    R.RestoranAdi AS [Restoran Adý],
+    COUNT(S.SiparisID) AS [Toplam Sipariþ Adedi],
+    SUM(S.ToplamTutar) AS [Toplam Ciro (TL)],
+    R.RestoranPuani AS [Restoran Puaný]
+FROM Restoranlar R
+LEFT JOIN Siparisler S ON R.RestoranID = S.RestoranID
+WHERE R.IsActive = 1
+GROUP BY R.RestoranAdi, R.RestoranPuani;
+GO
+
+GO
+
+-- Sorgu 1: En Çok Baðýþ Yaparak Havuzu Destekleyen Ýlk 3 Hayýrsever (Geliþmiþ JOIN & GROUP BY)
+SELECT TOP 3
+    CASE WHEN B.IsAnonymous = 1 THEN 'Hayýrsever (Gizli Baðýþ)' ELSE K.Ad + ' ' + K.Soyad END AS [Baðýþçý],
+    SUM(B.BagisMiktar) AS [Toplam Baðýþ Tutarý (TL)],
+    COUNT(B.BagisID) AS [Baðýþ Yapma Sýklýðý]
+FROM Bagislar B
+LEFT JOIN Kullanicilar K ON B.BagisciID = K.KullaniciID
+GROUP BY B.BagisciID, B.IsAnonymous, K.Ad, K.Soyad
+ORDER BY [Toplam Baðýþ Tutarý (TL)] DESC;
+
+-- Sorgu 2: En Çok Sipariþ Edilen Popüler Ýlk 5 Yemek ve Hangi Restorana Ait Olduðu (3'lü JOIN)
+SELECT TOP 5
+    R.RestoranAdi AS [Restoran],
+    U.UrunAdi AS [Yemek Adý],
+    SUM(SD.Adet) AS [Toplam Satýþ Adedi]
+FROM SiparisDetaylari SD
+INNER JOIN Urunler U ON SD.UrunID = U.UrunID
+INNER JOIN Restoranlar R ON U.RestoranID = R.RestoranID
+GROUP BY R.RestoranAdi, U.UrunAdi
+ORDER BY [Toplam Satýþ Adedi] DESC;
+
+-- Sorgu 3: "Askýda Yemek" Sistemini En Çok Kullanan (En Çok Yardým Alan) Ýhtiyaç Sahibi Müþteriler
+SELECT TOP 5
+    K.Ad + ' ' + K.Soyad AS [Müþteri],
+    COUNT(S.SiparisID) AS [Askýdan Verilen Sipariþ Adedi],
+    SUM(S.ToplamTutar) AS [Sistemden Alýnan Destek Tutarý (TL)]
+FROM Siparisler S
+INNER JOIN Kullanicilar K ON S.MusteriID = K.KullaniciID
+WHERE S.OdemeYontemi = 'AskidaYemek' AND K.IsVerified = 1
+GROUP BY K.Ad, K.Soyad
+ORDER BY [Sistemden Alýnan Destek Tutarý (TL)] DESC;
