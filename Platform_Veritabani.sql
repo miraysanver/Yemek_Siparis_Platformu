@@ -75,3 +75,46 @@ GO
 
 INSERT INTO AskidaHavuz (ToplamBakiye) VALUES (0.00);
 GO
+
+IF OBJECT_ID('dbo.SiparisDetaylari', 'U') IS NOT NULL DROP TABLE dbo.SiparisDetaylari;
+IF OBJECT_ID('dbo.Siparisler', 'U') IS NOT NULL DROP TABLE dbo.Siparisler;
+GO
+
+CREATE TABLE Siparisler (
+    SiparisID INT IDENTITY(1,1),
+    MusteriID INT NOT NULL,       
+    RestoranID INT NOT NULL,      
+    ToplamTutar DECIMAL(10, 2) NOT NULL,
+    OdemeYontemi VARCHAR(30) NOT NULL, 
+    SiparisDurumu VARCHAR(30) DEFAULT 'Hazirlaniyor', 
+    SiparisTarihi DATETIME DEFAULT GETDATE(),
+
+    CONSTRAINT PK_Siparisler PRIMARY KEY (SiparisID),
+    
+    CONSTRAINT FK_Siparisler_Kullanicilar FOREIGN KEY (MusteriID) 
+        REFERENCES Kullanicilar(KullaniciID),
+    CONSTRAINT FK_Siparisler_Restoranlar FOREIGN KEY (RestoranID) 
+        REFERENCES Restoranlar(RestoranID),
+        
+    CONSTRAINT CHK_SiparisToplamTutar CHECK (ToplamTutar > 0)
+);
+GO
+
+CREATE TABLE SiparisDetaylari (
+    SiparisDetayID INT IDENTITY(1,1),
+    SiparisID INT NOT NULL,      
+    UrunID INT NOT NULL,          
+    Adet INT NOT NULL DEFAULT 1,
+    BirimFiyat DECIMAL(10, 2) NOT NULL,
+
+    CONSTRAINT PK_SiparisDetaylari PRIMARY KEY (SiparisDetayID),
+    
+    CONSTRAINT FK_SiparisDetaylari_Siparisler FOREIGN KEY (SiparisID) 
+        REFERENCES Siparisler(SiparisID),
+    CONSTRAINT FK_SiparisDetaylari_Urunler FOREIGN KEY (UrunID) 
+        REFERENCES Urunler(UrunID),
+        
+    CONSTRAINT CHK_SDetayAdet CHECK (Adet > 0),
+    CONSTRAINT CHK_SDetayBirimFiyat CHECK (BirimFiyat > 0)
+);
+GO
