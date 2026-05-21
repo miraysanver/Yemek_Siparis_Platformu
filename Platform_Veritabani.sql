@@ -118,3 +118,90 @@ CREATE TABLE SiparisDetaylari (
     CONSTRAINT CHK_SDetayBirimFiyat CHECK (BirimFiyat > 0)
 );
 GO
+
+GO
+CREATE TRIGGER TRG_BagisSonrasiHavuzGuncelle
+ON Bagislar
+AFTER INSERT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    DECLARE @EklenenMiktar DECIMAL(10,2);
+    SELECT @EklenenMiktar = BagisMiktar FROM inserted;
+    
+    UPDATE AskidaHavuz
+    SET ToplamBakiye = ToplamBakiye + @EklenenMiktar,
+        SonGuncellemeTarihi = GETDATE()
+    WHERE HavuzID = 1;
+END;
+GO
+
+CREATE TRIGGER TRG_AskidaSiparisHavuzDus
+ON Siparisler
+AFTER INSERT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    DECLARE @SiparisTutari DECIMAL(10,2);
+    DECLARE @OdemeTipi VARCHAR(30);
+    
+    SELECT @SiparisTutari = ToplamTutar, @OdemeTipi = OdemeYontemi FROM inserted;
+    
+
+    IF @OdemeTipi = 'AskidaYemek'
+    BEGIN
+        DECLARE @MevcutHavuz DECIMAL(10,2);
+        SELECT @MevcutHavuz = ToplamBakiye FROM AskidaHavuz WHERE HavuzID = 1;
+        
+        IF @MevcutHavuz >= @SiparisTutari
+        BEGIN
+            UPDATE AskidaHavuz
+            SET ToplamBakiye = ToplamBakiye - @SiparisTutari,
+                SonGuncellemeTarihi = GETDATE()
+            WHERE HavuzID = 1;
+        END
+        ELSE
+        BEGIN
+            RAISERROR('Hata: Askýda yemek havuzunda yeterli bakiye bulunmamaktadýr!', 16, 1);
+            ROLLBACK TRANSACTION;
+        END
+    END
+END;
+GO
+
+GO
+
+-- 20 ADET ANLAMLI KULLANICI EKLEME (Müþteriler, Kuryeler, Yetkililer)
+INSERT INTO Kullanicilar (Ad, Soyad, Eposta, Telefon, Rol, Bakiye, IsVerified, IsActive) VALUES
+('Elanur', 'Çiftçi', 'elanur.ciftci@gmail.com', '05321111111', 'Musteri', 250.00, 0, 1),
+('Miray', 'Aslan', 'miray.aslan@gmail.com', '05322222222', 'Musteri', 500.00, 0, 1),
+('Can', 'Demir', 'can.demir@gmail.com', '05323333333', 'Musteri', 50.00, 0, 1),
+('Merve', 'Kaya', 'merve.kaya@gmail.com', '05324444444', 'Musteri', 0.00, 1, 1), -- Doðrulanmýþ Ýhtiyaç Sahibi
+('Gamze', 'Özaydýn', 'gamze.ozaydin@gmail.com', '05325555555', 'Musteri', 15.00, 1, 1),  -- Doðrulanmýþ Ýhtiyaç Sahibi
+('Eda', 'Þahin', 'eda.sahin@gmail.com', '05326666666', 'Musteri', 750.00, 0, 1),
+('Hasan', 'Yýldýz', 'hasan.yildiz@gmail.com', '05327777777', 'Musteri', 120.00, 0, 1),
+('Zeynep Naz', 'Aþan', 'zeynep.naz.asan@gmail.com', '05328888888', 'Musteri', 0.00, 1, 1), -- Doðrulanmýþ Ýhtiyaç Sahibi
+('Onur', 'Arslan', 'onur.arslan@gmail.com', '05329999999', 'Musteri', 340.00, 0, 1),
+('Ramazan', 'Þanver', 'ramazan.sanver@gmail.com', '05331111111', 'Musteri', 1000.00, 0, 1),
+('Emre', 'Kurt', 'emre.kurt@gmail.com', '05332222222', 'Musteri', 45.00, 0, 1),
+('Pelýn', 'Ay', 'pelin.ay@gmail.com', '05333333333', 'Musteri', 0.00, 1, 1),       -- Doðrulanmýþ Ýhtiyaç Sahibi
+('Emine', 'Tebelleþ', 'emine.tebelles@gmail.com', '05334444444', 'Musteri', 150.00, 0, 1),
+('Gökhan', 'Öztürk', 'gokhan.ozturk@gmail.com', '05335555555', 'Musteri', 60.00, 0, 1),
+('Büþra', 'Aðdað', 'busra.agdag@gmail.com', '05336666666', 'Musteri', 0.00, 1, 1),       -- Doðrulanmýþ Ýhtiyaç Sahibi
+('Murat', 'Tekin', 'murat.tekin@gmail.com', '05337777777', 'RestoranYetkilisi', 0.00, 0, 1),
+('Ayþenaz', 'Kocatürk', 'aysenaz.kocaturk@gmail.com', '05338888888', 'RestoranYetkilisi', 0.00, 0, 1),
+('Ali', 'Yavuz', 'ali.yavuz@gmail.com', '05339999999', 'Kurye', 0.00, 0, 1),
+('Mehmet', 'Eren', 'mehmet.eren@gmail.com', '05341111111', 'Kurye', 0.00, 0, 1),
+('Fatma', 'Bulut', 'fatma.bulut@gmail.com', '05342222222', 'Kurye', 0.00, 0, 1);
+GO
+
+-- 5 ADET ANLAMLI RESTORAN EKLEME
+INSERT INTO Restoranlar (RestoranAdi, Adres, RestoranPuani, IsActive) VALUES
+('Mosh Burger', 'Yalova Çýnarcýk No:12', 4.5, 1),
+('Yýldýz Lahmacun', 'Yalova Merkez No:45', 4.2, 1),
+('Elf Cafe', 'Yalova Çiftlikköy No:88', 3.9, 1),
+('Boston Cafe', 'Yalova Kadýköy No:3', 4.7, 1),
+('Yeþil Baklava', 'Yalova Merkez No:7', 4.8, 1);
+GO
